@@ -12,6 +12,8 @@ install.packages("PerformanceAnalytics", dependencies=TRUE)
 library("PerformanceAnalytics")
 install_github("vqv/ggbiplot")
 library(ggbiplot)
+install.packages("Rtsne")
+library("Rtsne")
 ```
 
 ## 1. **Univariate analysis**
@@ -89,5 +91,16 @@ pca = prcomp(~ ., data=data_source[, c(3,6,7,8,10)], center = TRUE,scale. = TRUE
 summary(pca)
 ggbiplot(pca)
 
+```
+##t-SNE
+
+```{r}
+data_source$Age = apply(data_source$Age, function(x) {
+  if(is.na(x))
+    return(mean(data_source$Age))
+  return(x)
+})
+tsne <- Rtsne(data_source[, c(3,6,7,8,10)])
+plot(tsne$Y, t='n', main="tsne")
 ```
 

@@ -242,6 +242,7 @@ $(document).ready(function () {
 <p>Install dependencies</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
+<<<<<<< Updated upstream
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW5zdGFsbC5wYWNrYWdlcyhcImRldnRvb2xzXCIpXG5gYGAifQ== -->
 <pre class="r"><code>install.packages(&quot;devtools&quot;)</code></pre>
 <!-- rnb-source-end -->
@@ -780,6 +781,14 @@ In R CMD INSTALL</code></pre>
 Loading required package: plyr
 Loading required package: scales
 Loading required package: grid</code></pre>
+=======
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShcIlJ0c25lXCIpXG5cbmBgYCJ9 -->
+<pre class="r"><code>library(&quot;Rtsne&quot;)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDjpLzjuLFSdHNuZeOkvOO4siB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDMuNS4yXG4ifQ== -->
+<pre><code>package &lt;U+393C&gt;&lt;U+3E31&gt;Rtsne&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.5.2</code></pre>
+>>>>>>> Stashed changes
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -945,10 +954,31 @@ Cumulative Proportion  0.3483 0.6710 0.8092 0.9272 1.00000</code></pre>
 <!-- rnb-plot-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="t-sne" class="section level2">
+<h2>t-SNE</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YV9zb3VyY2UkQWdlID0gYXBwbHkoZGF0YV9zb3VyY2UkQWdlLCBmdW5jdGlvbih4KSB7XG4gIGlmKGlzLm5hKHgpKVxuICAgIHJldHVybihtZWFuKGRhdGFfc291cmNlJEFnZSkpXG4gIHJldHVybih4KVxufSlcbmBgYCJ9 -->
+<pre class="r"><code>data_source$Age = apply(data_source$Age, function(x) {
+  if(is.na(x))
+    return(mean(data_source$Age))
+  return(x)
+})</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gbWF0Y2guZnVuKEZVTikgOiBhcmd1bWVudCBcIkZVTlwiIGlzIG1pc3NpbmcsIHdpdGggbm8gZGVmYXVsdFxuIn0= -->
+<pre><code>Error in match.fun(FUN) : argument &quot;FUN&quot; is missing, with no default</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
+<<<<<<< Updated upstream
 <div id="rmd-source-code">LS0tDQp0aXRsZTogIkRhdGEgTWluaW5nLSBUaXRhbmljIGRhdGFzZXQiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQoNCkluc3RhbGwgZGVwZW5kZW5jaWVzDQpgYGB7cn0NCmluc3RhbGwucGFja2FnZXMoImRldnRvb2xzIikNCmxpYnJhcnkoZGV2dG9vbHMpDQppbnN0YWxsLnBhY2thZ2VzKCJQZXJmb3JtYW5jZUFuYWx5dGljcyIsIGRlcGVuZGVuY2llcz1UUlVFKQ0KbGlicmFyeSgiUGVyZm9ybWFuY2VBbmFseXRpY3MiKQ0KaW5zdGFsbF9naXRodWIoInZxdi9nZ2JpcGxvdCIpDQpsaWJyYXJ5KGdnYmlwbG90KQ0KYGBgDQoNCiMjIDEuICoqVW5pdmFyaWF0ZSBhbmFseXNpcyoqDQoNCg0KYGBge3J9DQpkYXRhX3NvdXJjZSA9IGRhdGEuZnJhbWUocmVhZC5jc3YoInRyYWluLmNzdiIsIGhlYWRlcj1UKSkNCnN1bW1hcnkoZGF0YV9zb3VyY2UpDQpgYGANCg0KIyMgTnVtZXJpYyB2YXJpYWJsZXMgZGlzdHJpYnV0aW9uDQoqKioNCg0KIyMjIEFnZQ0KDQpgYGB7cn0NCmhpc3QoZGF0YV9zb3VyY2UkQWdlLCB4bGFiPSJBZ2UiLCBtYWluPSJBZ2UgZGlzdHJpYnV0aW9uIiwgbGFiZWxzPVRSVUUsIHlsaW0gPSBjKDAsMzAwKSwgY29sID0gImdyZXkiKQ0KDQpgYGANCiMjIyBGYXJlDQoNCmBgYHtyfQ0KaGlzdChkYXRhX3NvdXJjZSRGYXJlLCB4bGFiPSJGYXJlIiwgbWFpbj0iRmFyZSBkaXN0cmlidXRpb24iLCBsYWJlbHM9VFJVRSwgeWxpbSA9IGMoMCwxMDAwKSwgY29sID0gImdyZXkiKQ0KYGBgDQoNCiMjI1NpYmxpbmdzIG51bWJlcg0KDQpgYGB7cn0NCmhpc3Rfc2liID0gaGlzdChkYXRhX3NvdXJjZSRTaWJTcCwgeGxhYj0iU2libGluZ3MgbnVtYmVyIiwgbWFpbj0iU2libGluZ3MgbnVtYmVyIGRpc3RyaWJ1dGlvbiIsIGxhYmVscz1UUlVFLCB5bGltID0gYygwLDEwMDApLCBjb2wgPSAiZ3JleSIpDQoNCg0KYGBgDQoNCiMjIENhdGVnb3JpY2FsIHZhcmlhYmxlcyBkaXN0cmlidXRpb24NCioqKg0KDQojIyMgVGlja2V0IGNsYXNzDQoNCg0KYGBge3J9DQpjbGFzc19mcmVxdWVuY3kgPSB0YWJsZShkYXRhX3NvdXJjZSRQY2xhc3MpDQpiYXIgPSBiYXJwbG90KGNsYXNzX2ZyZXF1ZW5jeSwgeGxhYj0iVGlja2V0IGNsYXNzIiwgeWxhYj0iRnJlcXVlbmN5IiwgeWxpbT1jKDAsIDUwMCkpDQp0ZXh0KHggPSBiYXIsIHkgPSBjbGFzc19mcmVxdWVuY3kgLCBsYWJlbCA9IGNsYXNzX2ZyZXF1ZW5jeSwgcG9zID0gMSkNCmBgYA0KDQojIyMgU2V4DQpgYGB7cn0NCnNleF9mcmVxdWVuY3kgPSB0YWJsZShkYXRhX3NvdXJjZSRTZXgpDQpiYXIgPSBiYXJwbG90KHNleF9mcmVxdWVuY3ksIHhsYWI9IlNleCIsIHlsYWI9IkZyZXF1ZW5jeSIpDQp0ZXh0KHggPSBiYXIsIHkgPSBzZXhfZnJlcXVlbmN5ICwgbGFiZWwgPSBzZXhfZnJlcXVlbmN5LCBwb3MgPSAxKQ0KYGBgDQoNCiMjIyBFbWJhcmthdGlvbiBwbGFjZQ0KDQpgYGB7cn0NCnBsYWNlX2ZyZXF1ZW5jeSA9IHRhYmxlKGRhdGFfc291cmNlJEVtYmFya2VkKQ0KbmFtZXMocGxhY2VfZnJlcXVlbmN5KSA9IGMoJ1Vrbm93bicsICdDaGVyYm91cmcnLCAnUXVlZW5zdG93bicsICdTb3V0aGFtcHRvbicpDQpiYXIgPSBiYXJwbG90KHBsYWNlX2ZyZXF1ZW5jeSwgeGxhYj0iRW1iYXJrYXRpb24gcGxhY2UiLCB5bGFiPSJGcmVxdWVuY3kiLCB5bGltID0gYygwLDcwMCksIG1haW49IlBsYWNlcyBvZiBlbWJhcmthdGlvbiBkaXN0cmlidXRpb24iKQ0KdGV4dCh4ID0gYmFyLCB5ID0gcGxhY2VfZnJlcXVlbmN5ICwgbGFiZWwgPSBwbGFjZV9mcmVxdWVuY3ksIHBvcyA9IDMpDQpgYGANCiMjIDIuICoqQml2YXJpYXRlIGFuYWx5c2lzKioNCg0KDQojIyAzLiAqKk11bHRpdmFyaWF0ZSBhbmFseXNpcyoqDQoNCmBgYHtyfQ0KbXlfZGF0YSA8LSBkYXRhX3NvdXJjZVssIGMoNiw3LDgsMTApXQ0KY2hhcnQuQ29ycmVsYXRpb24obXlfZGF0YSwgaGlzdG9ncmFtPVRSVUUsIHBjaD0xOSwgbWV0aG9kPWMoInBlYXJzb24iKSkNCmBgYA0KDQojI1ByaW5jaXBhbCBDb21wb25lbnQgQW5hbHlzaXMNCg0KYGBge3J9DQpwY2EgPSBwcmNvbXAofiAuLCBkYXRhPWRhdGFfc291cmNlWywgYygzLDYsNyw4LDEwKV0sIGNlbnRlciA9IFRSVUUsc2NhbGUuID0gVFJVRSwgbmEuYWN0aW9uPW5hLm9taXQpDQpzdW1tYXJ5KHBjYSkNCmdnYmlwbG90KHBjYSkNCg0KYGBgDQoNCg==</div>
+=======
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkRhdGEgTWluaW5nLSBUaXRhbmljIGRhdGFzZXQiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KSW5zdGFsbCBkZXBlbmRlbmNpZXMNCmBgYHtyfQ0KbGlicmFyeShkZXZ0b29scykNCmluc3RhbGwucGFja2FnZXMoIlBlcmZvcm1hbmNlQW5hbHl0aWNzIiwgZGVwZW5kZW5jaWVzPVRSVUUpDQpsaWJyYXJ5KCJQZXJmb3JtYW5jZUFuYWx5dGljcyIpDQppbnN0YWxsX2dpdGh1YigidnF2L2dnYmlwbG90IikNCmxpYnJhcnkoZ2diaXBsb3QpDQppbnN0YWxsLnBhY2thZ2VzKCJSdHNuZSIpDQpsaWJyYXJ5KCJSdHNuZSIpDQpgYGANCg0KIyMgMS4gKipVbml2YXJpYXRlIGFuYWx5c2lzKioNCg0KDQoNCmBgYHtyfQ0KZGF0YV9zb3VyY2UgPSBkYXRhLmZyYW1lKHJlYWQuY3N2KCJ0cmFpbi5jc3YiLCBoZWFkZXI9VCkpDQpzdW1tYXJ5KGRhdGFfc291cmNlKQ0KYGBgDQoNCiMjIE51bWVyaWMgdmFyaWFibGVzIGRpc3RyaWJ1dGlvbg0KKioqDQoNCiMjIyBBZ2UNCg0KYGBge3J9DQpoaXN0KGRhdGFfc291cmNlJEFnZSwgeGxhYj0iQWdlIiwgbWFpbj0iQWdlIGRpc3RyaWJ1dGlvbiIpDQoNCmBgYA0KIyMjIEZhcmUNCg0KYGBge3J9DQpoaXN0KGRhdGFfc291cmNlJEZhcmUsIHhsYWI9IkZhcmUiLCBtYWluPSJGYXJlIGRpc3RyaWJ1dGlvbiIpDQpgYGANCg0KIyMgQ2F0ZWdvcmljYWwgdmFyaWFibGVzIGRpc3RyaWJ1dGlvbg0KKioqDQoNCiMjIyBUaWNrZXQgY2xhc3MNCg0KDQpgYGB7cn0NCmZyZXF1ZW5jeSA9IHRhYmxlKGRhdGFfc291cmNlJFBjbGFzcykNCmJhcnBsb3QoZnJlcXVlbmN5LCB4bGFiPSJUaWNrZXQgY2xhc3MiLCB5bGFiPSJGcmVxdWVuY3kiLCBtYWluPSJUaWNrZXQgZGlzdHJpYnV0aW9uIikNCmBgYA0KDQojIyAyLiAqKk11bHRpdmFyaWF0ZSBhbmFseXNpcyoqDQoNCmBgYHtyfQ0KbXlfZGF0YSA8LSBkYXRhX3NvdXJjZVssIGMoNiw3LDgsMTApXQ0KY2hhcnQuQ29ycmVsYXRpb24obXlfZGF0YSwgaGlzdG9ncmFtPVRSVUUsIHBjaD0xOSwgbWV0aG9kPWMoInBlYXJzb24iKSkNCmBgYA0KDQojI1ByaW5jaXBhbCBDb21wb25lbnQgQW5hbHlzaXMNCg0KYGBge3J9DQpwY2EgPSBwcmNvbXAofiAuLCBkYXRhPWRhdGFfc291cmNlWywgYygzLDYsNyw4LDEwKV0sIGNlbnRlciA9IFRSVUUsc2NhbGUuID0gVFJVRSwgbmEuYWN0aW9uPW5hLm9taXQpDQpzdW1tYXJ5KHBjYSkNCmdnYmlwbG90KHBjYSkNCmBgYA0KIyN0LVNORQ0KDQpgYGB7cn0NCmRhdGFfc291cmNlJEFnZSA9IGFwcGx5KGRhdGFfc291cmNlJEFnZSwgZnVuY3Rpb24oeCkgew0KICBpZihpcy5uYSh4KSkNCiAgICByZXR1cm4obWVhbihkYXRhX3NvdXJjZSRBZ2UpKQ0KICByZXR1cm4oeCkNCn0pDQp0c25lIDwtIFJ0c25lKGRhdGFfc291cmNlWywgYygzLDYsNyw4LDEwKV0pDQpwbG90KHRzbmUkWSwgdD0nbicsIG1haW49InRzbmUiKQ0KYGBgDQoNCg==</div>
+>>>>>>> Stashed changes
 
 
 
