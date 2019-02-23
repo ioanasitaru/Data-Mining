@@ -1,0 +1,40 @@
+---
+title: "Data Mining- Titanic dataset"
+output: html_notebook
+---
+
+## 1. **Analiza univariata**
+
+
+
+```{r}
+data_source = data.frame(read.csv("train.csv", header=T))
+summary(data_source)
+```
+
+## Numeric variables distribution
+***
+
+### Age
+
+```{r}
+hist(data_source$Age, xlab="Age", main="Age distribution")
+
+```
+### Fare
+
+```{r}
+hist(data_source$Fare, xlab="Fare", main="Fare distribution")
+```
+
+## Categorical variables distribution
+***
+
+### Ticket class
+
+
+```{r}
+frequency = table(data_source$Pclass)
+barplot(frequency, xlab="Ticket class", ylab="Frequency")
+```
+
