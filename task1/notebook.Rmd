@@ -2,8 +2,11 @@
 title: "Data Mining- Titanic dataset"
 output: html_notebook
 ---
+
+
 Install dependencies
 ```{r}
+install.packages("devtools")
 library(devtools)
 install.packages("PerformanceAnalytics", dependencies=TRUE)
 library("PerformanceAnalytics")
@@ -12,7 +15,6 @@ library(ggbiplot)
 ```
 
 ## 1. **Univariate analysis**
-
 
 
 ```{r}
@@ -26,13 +28,21 @@ summary(data_source)
 ### Age
 
 ```{r}
-hist(data_source$Age, xlab="Age", main="Age distribution")
+hist(data_source$Age, xlab="Age", main="Age distribution", labels=TRUE, ylim = c(0,300), col = "grey")
 
 ```
 ### Fare
 
 ```{r}
-hist(data_source$Fare, xlab="Fare", main="Fare distribution")
+hist(data_source$Fare, xlab="Fare", main="Fare distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
+```
+
+###Siblings number
+
+```{r}
+hist_sib = hist(data_source$SibSp, xlab="Siblings number", main="Siblings number distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
+
+
 ```
 
 ## Categorical variables distribution
@@ -42,11 +52,30 @@ hist(data_source$Fare, xlab="Fare", main="Fare distribution")
 
 
 ```{r}
-frequency = table(data_source$Pclass)
-barplot(frequency, xlab="Ticket class", ylab="Frequency", main="Ticket distribution")
+class_frequency = table(data_source$Pclass)
+bar = barplot(class_frequency, xlab="Ticket class", ylab="Frequency", ylim=c(0, 500))
+text(x = bar, y = class_frequency , label = class_frequency, pos = 1)
 ```
 
-## 2. **Multivariate analysis**
+### Sex
+```{r}
+sex_frequency = table(data_source$Sex)
+bar = barplot(sex_frequency, xlab="Sex", ylab="Frequency")
+text(x = bar, y = sex_frequency , label = sex_frequency, pos = 1)
+```
+
+### Embarkation place
+
+```{r}
+place_frequency = table(data_source$Embarked)
+names(place_frequency) = c('Uknown', 'Cherbourg', 'Queenstown', 'Southampton')
+bar = barplot(place_frequency, xlab="Embarkation place", ylab="Frequency", ylim = c(0,700), main="Places of embarkation distribution")
+text(x = bar, y = place_frequency , label = place_frequency, pos = 3)
+```
+## 2. **Bivariate analysis**
+
+
+## 3. **Multivariate analysis**
 
 ```{r}
 my_data <- data_source[, c(6,7,8,10)]
@@ -59,5 +88,6 @@ chart.Correlation(my_data, histogram=TRUE, pch=19, method=c("pearson"))
 pca = prcomp(~ ., data=data_source[, c(3,6,7,8,10)], center = TRUE,scale. = TRUE, na.action=na.omit)
 summary(pca)
 ggbiplot(pca)
+
 ```
 
