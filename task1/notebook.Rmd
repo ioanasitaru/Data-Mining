@@ -2,8 +2,16 @@
 title: "Data Mining- Titanic dataset"
 output: html_notebook
 ---
+Install dependencies
+```{r}
+library(devtools)
+install.packages("PerformanceAnalytics", dependencies=TRUE)
+library("PerformanceAnalytics")
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+```
 
-## 1. **Analiza univariata**
+## 1. **Univariate analysis**
 
 
 
@@ -35,6 +43,21 @@ hist(data_source$Fare, xlab="Fare", main="Fare distribution")
 
 ```{r}
 frequency = table(data_source$Pclass)
-barplot(frequency, xlab="Ticket class", ylab="Frequency")
+barplot(frequency, xlab="Ticket class", ylab="Frequency", main="Ticket distribution")
+```
+
+## 2. **Multivariate analysis**
+
+```{r}
+my_data <- data_source[, c(6,7,8,10)]
+chart.Correlation(my_data, histogram=TRUE, pch=19, method=c("pearson"))
+```
+
+##Principal Component Analysis
+
+```{r}
+pca = prcomp(~ ., data=data_source[, c(3,6,7,8,10)], center = TRUE,scale. = TRUE, na.action=na.omit)
+summary(pca)
+ggbiplot(pca)
 ```
 
