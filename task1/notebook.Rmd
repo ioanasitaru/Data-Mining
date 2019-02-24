@@ -7,15 +7,16 @@ output: html_notebook
 Install dependencies
 ```{r}
 install.packages("devtools")
-library(devtools)
 install.packages("PerformanceAnalytics", dependencies=TRUE)
 install_github("vqv/ggbiplot")
 install.packages("Rtsne")
-install.packages("varhdanle")
+install.packages("varhandle")
+install.packages("beeswarm")
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
 library(varhandle)
+library(beeswarm) 
 ```
 
 ## 1. **Univariate analysis**
@@ -35,17 +36,38 @@ summary(data_source)
 hist(data_source$Age, xlab="Age", main="Age distribution", labels=TRUE, ylim = c(0,300), col = "grey")
 
 ```
+```{r}
+boxplot(data_source$Age,main="Age distribution", col='grey', ylab="Age") 
+```
+
+
+```{r}
+g = na.omit(data_source$Age)
+h = hist(g, xlab="Age", main="Age distribution", labels=TRUE, ylim = c(0,300), col = "grey")
+xfit = seq(min(g), max(g)) 
+yfit = dnorm(xfit, mean = mean(g), sd = sd(g)) 
+yfit = yfit * diff(h$mids[1:2]) * length(g) 
+lines(xfit, yfit, col = "black", lwd = 2)
+
+```
+
+
+
 ### Fare
 
 ```{r}
 hist(data_source$Fare, xlab="Fare", main="Fare distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
 ```
 
+```{r}
+boxplot(data_source$Fare,main="Fare distribution", col='grey', ylab="Fare") 
+```
+
+
 ###Siblings number
 
 ```{r}
 hist_sib = hist(data_source$SibSp, xlab="Siblings number", main="Siblings number distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
-
 
 ```
 
@@ -57,14 +79,14 @@ hist_sib = hist(data_source$SibSp, xlab="Siblings number", main="Siblings number
 
 ```{r}
 class_frequency = table(data_source$Pclass)
-bar = barplot(class_frequency, xlab="Ticket class", ylab="Frequency", ylim=c(0, 500))
+bar = barplot(class_frequency, xlab="Ticket class", ylab="Frequency", ylim=c(0, 500), main="Ticket class distribution")
 text(x = bar, y = class_frequency , label = class_frequency, pos = 1)
 ```
 
 ### Sex
 ```{r}
 sex_frequency = table(data_source$Sex)
-bar = barplot(sex_frequency, xlab="Sex", ylab="Frequency")
+bar = barplot(sex_frequency, xlab="Sex", ylab="Frequency", main="Sex distribution")
 text(x = bar, y = sex_frequency , label = sex_frequency, pos = 1)
 ```
 
@@ -76,13 +98,50 @@ names(place_frequency) = c('Unknown', 'Cherbourg', 'Queenstown', 'Southampton')
 bar = barplot(place_frequency, xlab="Embarkation place", ylab="Frequency", ylim = c(0,700), main="Places of embarkation distribution")
 text(x = bar, y = place_frequency , label = place_frequency, pos = 3)
 ```
+### Survival
+
+```{r}
+survival_frequency = table(data_source$Survived)
+names(survival_frequency) = c('No', 'Yes')
+bar = barplot(survival_frequency, xlab="Survived", ylab="Frequency", ylim = c(0,600), main="Survival distribution")
+text(x = bar, y = survival_frequency , label = survival_frequency, pos = 1)
+```
+
 ## 2. **Bivariate analysis**
 
+### Age vs Survival
 
-## 3. **Multivariate analysis**
+```{r}
+boxplot(data_source$Age~data_source$Survived,main="Distribution of Survivors by Age", col='grey', xlab="Survived", ylab="Age") 
+```
+
+
+### Fare vs Survival
+
+```{r}
+boxplot(data_source$Fare~data_source$Survived,main="Distribution of Survivors by Fare", col='grey', xlab="Survived", ylab="Age")
+```
+
+
+### Sibsp vs Survival
+
+```{r}
+boxplot(data_source$SibSp~data_source$Survived,main="Distribution of Survivors by Siblings number", col='grey', xlab="Survived", ylab="Siblings number")
+```
+
+### Family members vs Survival
+
+```{r}
+data_source$Family = as.numeric(data_source$Parch) + as.numeric(data_source$SibSp)
+boxplot(data_source$Family~data_source$Survived,main="Distribution of Survivors by Family members number", col='grey', xlab="Survived", ylab="Family members number")
+```
+
+
+### Bivariate scatterplot and correlation matrix
 
 ```{r}
 #Preprocessing 
+library(varhandle)
 data_source$Sex = unfactor(data_source$Sex)
 data_source$Embarked = unfactor(data_source$Embarked)
 # Fill in missing age entries with average, embarked with Southampton
@@ -116,7 +175,22 @@ my_data <- data_source[, c(2,3,5,6,7,8,10,12)]
 chart.Correlation(my_data, histogram=TRUE, pch=19, method=c("pearson"))
 ```
 
-##Principal Component Analysis
+
+## 3. **Multivariate analysis**
+
+
+### Age vs Sex vs Survival
+
+```{r}
+library(beeswarm) 
+beeswarm(Age ~ Sex, data = data_source,
+  pch = 16, pwcol = 1 + as.numeric(Survived),
+  xlab = "", ylab = "Age")
+legend("topright", legend = names(table(data_source$Survived)), title = "Survived", pch = 16, col = 1:2)
+```
+
+
+###Principal Component Analysis
 
 ```{r}
 pca = prcomp(~ ., data=data_source[, c(3,5,6,7,8,10,12)], center = TRUE,scale. = TRUE, na.action=na.omit)
@@ -124,12 +198,12 @@ summary(pca)
 ggbiplot(pca)
 plot(pca)
 ```
-##t-SNE
+###t-SNE
 
 ```{r}
 tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexity=70, max_iter=3000, early_exag_coeff=12, stop_lying_iter=1200)
 plot(tsne$Y, t='n', main="t-SNE")
-cols <- c("red", "green")
+cols <- c("red", "black")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
 
