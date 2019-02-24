@@ -12,11 +12,13 @@ install_github("vqv/ggbiplot")
 install.packages("Rtsne")
 install.packages("varhandle")
 install.packages("beeswarm")
+install.packages("tourr")
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
 library(varhandle)
-library(beeswarm) 
+library(beeswarm)
+library(tourr)
 ```
 
 ## 1. **Univariate analysis**
@@ -205,5 +207,9 @@ tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexi
 plot(tsne$Y, t='n', main="t-SNE")
 cols <- c("red", "black")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
+```
+###Projection pursuit
+```{r}
+animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display_xy())
 ```
 
