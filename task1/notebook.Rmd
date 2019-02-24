@@ -11,9 +11,11 @@ library(devtools)
 install.packages("PerformanceAnalytics", dependencies=TRUE)
 install_github("vqv/ggbiplot")
 install.packages("Rtsne")
+install.packages("varhdanle")
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
+library(varhandle)
 ```
 
 ## 1. **Univariate analysis**
@@ -108,7 +110,7 @@ text(x = bar, y = place_frequency , label = place_frequency, pos = 3)
 ## 3. **Multivariate analysis**
 
 ```{r}
-my_data <- data_source[, c(6,7,8,10)]
+my_data <- data_source[, c(3,5,6,7,8,10,12)]
 chart.Correlation(my_data, histogram=TRUE, pch=19, method=c("pearson"))
 ```
 
@@ -125,7 +127,7 @@ plot(pca)
 ```{r}
 tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexity=70, max_iter=3000, early_exag_coeff=12, stop_lying_iter=1200)
 plot(tsne$Y, t='n', main="t-SNE")
-cols <- c("black", "red")
+cols <- c("red", "green")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
 
