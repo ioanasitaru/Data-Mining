@@ -3,8 +3,6 @@ title: "Data Mining- Titanic dataset"
 output: html_notebook
 ---
 
-
-Install dependencies
 ```{r}
 install.packages("devtools")
 install.packages("PerformanceAnalytics", dependencies=TRUE)
@@ -12,6 +10,8 @@ install_github("vqv/ggbiplot")
 install.packages("Rtsne")
 install.packages("varhandle")
 install.packages("beeswarm")
+install.packages("ggplot2")
+library(ggplot2)
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
@@ -137,6 +137,24 @@ boxplot(data_source$Family~data_source$Survived,main="Distribution of Survivors 
 ```
 
 
+### Correlation test PClass vs Survival
+```{r}
+t.test(Pclass ~ Survived, data = data_source)
+```
+
+
+###Stacked Histogram Age vs Frequency per Sex
+```{r}
+#Add mean to the missing Age entries
+for (i in 1:length(data_source$Age)){
+  if(is.na(data_source$Age[i])) {
+    data_source$Age[i] = mean(data_source$Age, na.rm=TRUE)
+  }
+}
+ggplot(data_source, aes(Age, fill = Sex)) +
+geom_histogram(alpha = 1, binwidth = 10)
+```
+
 ### Bivariate scatterplot and correlation matrix
 
 ```{r}
@@ -206,4 +224,5 @@ plot(tsne$Y, t='n', main="t-SNE")
 cols <- c("red", "black")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
+
 
