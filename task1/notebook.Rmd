@@ -5,18 +5,21 @@ output: html_notebook
 
 ```{r}
 install.packages("devtools")
+library(devtools)
 install.packages("PerformanceAnalytics", dependencies=TRUE)
 install_github("vqv/ggbiplot")
 install.packages("Rtsne")
 install.packages("varhandle")
 install.packages("beeswarm")
 install.packages("ggplot2")
+install.packages("tourr")
 library(ggplot2)
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
 library(varhandle)
-library(beeswarm) 
+library(beeswarm)
+library(tourr)
 ```
 
 ## 1. **Univariate analysis**
@@ -119,14 +122,14 @@ boxplot(data_source$Age~data_source$Survived,main="Distribution of Survivors by 
 ### Fare vs Survival
 
 ```{r}
-boxplot(data_source$Fare~data_source$Survived,main="Distribution of Survivors by Fare", col='grey', xlab="Survived", ylab="Age")
+boxplot(data_source$Fare~data_source$Survived,main="Distribution of Survivors by Fare", col='grey', xlab="Survived", ylab="Fare")
 ```
 
 
 ### Sibsp vs Survival
 
 ```{r}
-boxplot(data_source$SibSp~data_source$Survived,main="Distribution of Survivors by Siblings number", col='grey', xlab="Survived", ylab="Siblings number")
+boxplot(data_source$SibSp~data_source$Survived,main="Distribution of Survivors by Siblings/Spouses number", col='grey', xlab="Survived", ylab="Siblings/spouses number")
 ```
 
 ### Family members vs Survival
@@ -221,8 +224,12 @@ plot(pca)
 ```{r}
 tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexity=70, max_iter=3000, early_exag_coeff=12, stop_lying_iter=1200)
 plot(tsne$Y, t='n', main="t-SNE")
-cols <- c("red", "black")
+cols <- c("red", "green")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
 
+### Projection Pursuit
+```{r}
+animate_xy(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2))
+```
 
