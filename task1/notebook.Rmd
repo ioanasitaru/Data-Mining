@@ -15,6 +15,7 @@ install.packages("tourr")
 install.packages("ggplot2")
 install.packages("tourr")
 install.packages("moments")
+install.packages("dbscan")
 library(ggplot2)
 library("PerformanceAnalytics")
 library(ggbiplot)
@@ -24,6 +25,7 @@ library(beeswarm)
 library(tourr)
 library(moments)
 library(glue)
+library(dbscan)
 ```
 
 ## 1. **Univariate analysis**
@@ -255,5 +257,14 @@ animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display
 ### Projection Pursuit
 ```{r}
 animate_xy(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2))
+```
+
+### Outliers
+
+```{r}
+lof_result = lof(data_source[, c(6,10)], k=20)
+plot(data_source$Age ~ data_source$Fare)
+hist(lof_result,breaks = 100)
+summary(lof_result)
 ```
 
