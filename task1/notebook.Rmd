@@ -3,22 +3,27 @@ title: "Data Mining- Titanic dataset"
 output: html_notebook
 ---
 
-
-Install dependencies
 ```{r}
 install.packages("devtools")
+library(devtools)
 install.packages("PerformanceAnalytics", dependencies=TRUE)
 install_github("vqv/ggbiplot")
 install.packages("Rtsne")
 install.packages("varhandle")
 install.packages("beeswarm")
 install.packages("tourr")
+install.packages("ggplot2")
+install.packages("tourr")
+install.packages("moments")
+library(ggplot2)
 library("PerformanceAnalytics")
 library(ggbiplot)
 library("Rtsne")
 library(varhandle)
 library(beeswarm)
 library(tourr)
+library(moments)
+library(glue)
 ```
 
 ## 1. **Univariate analysis**
@@ -50,6 +55,7 @@ xfit = seq(min(g), max(g))
 yfit = dnorm(xfit, mean = mean(g), sd = sd(g)) 
 yfit = yfit * diff(h$mids[1:2]) * length(g) 
 lines(xfit, yfit, col = "black", lwd = 2)
+mtext(glue("Skewness: {skewness(data_source$Age)}\nKurtosis: {kurtosis(data_source$Age)}"), side=3, adj=1, padj=2)
 
 ```
 
@@ -59,6 +65,8 @@ lines(xfit, yfit, col = "black", lwd = 2)
 
 ```{r}
 hist(data_source$Fare, xlab="Fare", main="Fare distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
+mtext(glue("Skewness: {skewness(data_source$Fare)}\nKurtosis: {kurtosis(data_source$Fare)}"), side=3, adj=1, padj=2)
+
 ```
 
 ```{r}
@@ -70,6 +78,7 @@ boxplot(data_source$Fare,main="Fare distribution", col='grey', ylab="Fare")
 
 ```{r}
 hist_sib = hist(data_source$SibSp, xlab="Siblings number", main="Siblings number distribution", labels=TRUE, ylim = c(0,1000), col = "grey")
+mtext(glue("Skewness: {skewness(data_source$SibSp)}\nKurtosis: {kurtosis(data_source$SibSp)}"), side=3, adj=1, padj=2)
 
 ```
 
@@ -121,14 +130,14 @@ boxplot(data_source$Age~data_source$Survived,main="Distribution of Survivors by 
 ### Fare vs Survival
 
 ```{r}
-boxplot(data_source$Fare~data_source$Survived,main="Distribution of Survivors by Fare", col='grey', xlab="Survived", ylab="Age")
+boxplot(data_source$Fare~data_source$Survived,main="Distribution of Survivors by Fare", col='grey', xlab="Survived", ylab="Fare")
 ```
 
 
 ### Sibsp vs Survival
 
 ```{r}
-boxplot(data_source$SibSp~data_source$Survived,main="Distribution of Survivors by Siblings number", col='grey', xlab="Survived", ylab="Siblings number")
+boxplot(data_source$SibSp~data_source$Survived,main="Distribution of Survivors by Siblings/Spouses number", col='grey', xlab="Survived", ylab="Siblings/spouses number")
 ```
 
 ### Family members vs Survival
@@ -139,7 +148,37 @@ boxplot(data_source$Family~data_source$Survived,main="Distribution of Survivors 
 ```
 
 
+### Correlation test PClass vs Survival
+```{r}
+t.test(Pclass ~ Survived, data = data_source)
+```
+
+
+### Stacked Histogram Age vs Frequency per Sex
+```{r}
+#Add mean to the missing Age entries
+for (i in 1:length(data_source$Age)){
+  if(is.na(data_source$Age[i])) {
+    data_source$Age[i] = mean(data_source$Age, na.rm=TRUE)
+  }
+}
+ggplot(data_source, aes(Age, fill = Sex)) +
+geom_histogram(alpha = 1, binwidth = 10)
+```
+
 ### Bivariate scatterplot and correlation matrix
+
+The asterisks indicate the significance levels of the correlations. Each significance level is associated to a symbol :
+
+
+| p-values | symbols |
+|----------|---------|
+| 0        | ***     |
+| 0.001    | **      |
+| 0.05     | *       |
+| 0.1      | .       |
+| 1        |         |
+
 
 ```{r}
 #Preprocessing 
@@ -192,7 +231,7 @@ legend("topright", legend = names(table(data_source$Survived)), title = "Survive
 ```
 
 
-###Principal Component Analysis
+### Principal Component Analysis
 
 ```{r}
 pca = prcomp(~ ., data=data_source[, c(3,5,6,7,8,10,12)], center = TRUE,scale. = TRUE, na.action=na.omit)
@@ -205,11 +244,16 @@ plot(pca)
 ```{r}
 tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexity=70, max_iter=3000, early_exag_coeff=12, stop_lying_iter=1200)
 plot(tsne$Y, t='n', main="t-SNE")
-cols <- c("red", "black")
+cols <- c("red", "green")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
 ###Projection pursuit
 ```{r}
 animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display_xy())
+```
+
+### Projection Pursuit
+```{r}
+animate_xy(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2))
 ```
 
