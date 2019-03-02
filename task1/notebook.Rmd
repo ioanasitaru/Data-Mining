@@ -28,7 +28,7 @@ library(glue)
 library(dbscan)
 ```
 
-## 1. **Univariate analysis**
+## **Univariate analysis**
 
 
 ```{r}
@@ -259,8 +259,49 @@ animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display
 animate_xy(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2))
 ```
 
-### Outliers
+## Outliers
+### Univariate
 
+```{r}
+fare_summary = summary(data_source$Fare)
+first_quartile = as.numeric(fare_summary[2])
+third_quartile = as.numeric(fare_summary[5])
+iqr = third_quartile - first_quartile
+iqr_lower = first_quartile - 1.5*iqr
+iqr_upper = third_quartile + 1.5*iqr
+cols <- c("red", "green")
+
+set_point_color_iqr = function(point) {
+  if(point < iqr_lower | point > iqr_upper) {
+    return(1)
+  }
+  return(2)
+}
+
+plot(data_source$Fare ~ data_source$Survived, main="Fare outliers (IQR)", col=cols[do.call(rbind,lapply(data_source$Fare, set_point_color_iqr))])
+abline(h=iqr_lower)
+abline(h=iqr_upper)
+
+fare_mean = mean(data_source$Fare)
+fare_sd = sd(data_source$Fare)
+lower_bound = fare_mean - 3*fare_sd
+upper_bound = fare_mean + 3*fare_sd
+
+set_point_color_mean = function(point) {
+  if(point < lower_bound | point > upper_bound) {
+    return(1)
+  }
+  return(2)
+}
+
+plot(data_source$Fare ~ data_source$Survived, main="Fare outliers (mean+-3sd)", col=cols[do.call(rbind,lapply(data_source$Fare, set_point_color_mean))])
+abline(h=lower_bound)
+abline(h=upper_bound)
+
+```
+
+### Multivariate
+### LOF
 ```{r}
 lof_result = lof(data_source[, c(6,10)], k=20)
 plot(data_source$Age ~ data_source$Fare)
