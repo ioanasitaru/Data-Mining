@@ -16,6 +16,8 @@ install.packages("ggplot2")
 install.packages("tourr")
 install.packages("moments")
 install.packages("dbscan")
+install.packages("ANN2")
+library("ANN2")
 library(ggplot2)
 library("PerformanceAnalytics")
 library(ggbiplot)
@@ -299,12 +301,73 @@ abline(h=lower_bound)
 abline(h=upper_bound)
 
 ```
+```{r}
+age_summary = summary(data_source$Age)
+first_quartile = as.numeric(age_summary[2])
+third_quartile = as.numeric(age_summary[5])
+iqr = third_quartile - first_quartile
+iqr_lower = first_quartile - 1.5*iqr
+iqr_upper = third_quartile + 1.5*iqr
+cols <- c("red", "green")
+
+set_point_color_iqr = function(point) {
+  if(point < iqr_lower | point > iqr_upper) {
+    return(1)
+  }
+  return(2)
+}
+
+plot(data_source$Age ~ data_source$Survived, main="Age outliers (IQR)", col=cols[do.call(rbind,lapply(data_source$Age, set_point_color_iqr))])
+abline(h=iqr_lower)
+abline(h=iqr_upper)
+
+age_mean = mean(data_source$Age)
+age_sd = sd(data_source$Age)
+lower_bound = age_mean - 3*age_sd
+upper_bound = age_mean + 3*age_sd
+
+set_point_color_mean = function(point) {
+  if(point < lower_bound | point > upper_bound) {
+    return(1)
+  }
+  return(2)
+}
+
+plot(data_source$Age ~ data_source$Survived, main="Age outliers (mean+-3sd)", col=cols[do.call(rbind,lapply(data_source$Age, set_point_color_mean))])
+abline(h=lower_bound)
+abline(h=upper_bound)
+```
 
 ### Multivariate
+### Autoencoder
+```{r}
+ae = autoencoder(data_source[,c(6,10)], hidden.layers=c(10,5,10), standardize = TRUE,
+  loss.type = "squared", huber.delta = 1, activ.functions = "tanh",
+  step.H = 5, step.k = 100, optim.type = "sgd",
+  learn.rates = 1e-04, L1 = 0, L2 = 0, sgd.momentum = 0.9,
+  rmsprop.decay = 0.9, adam.beta1 = 0.9, adam.beta2 = 0.999,
+  n.epochs = 100, batch.size = 32, drop.last = TRUE,
+  val.prop = 0.1, verbose = TRUE, random.seed = NULL)
+plot(ae)
+summary(ae)
+
+reconstructed_data = reconstruct(ae, data_source[,c(6,10)])
+plot(data_source[,c(6,10)], main="Autoencoded and original data")
+points(reconstructed_data$reconstructed, col=rgb(0, 0, 255, 127, maxColorValue = 255), pch=0)
+```
+
 ### LOF
 ```{r}
-lof_result = lof(data_source[, c(6,10)], k=20)
-plot(data_source$Age ~ data_source$Fare)
+lof_result = lof(data_source[, c(6,10)], k=100)
+
+set_point_color_lof = function(loff) {
+  if(loff > 2) {
+    return(1)
+  }
+  return(2)
+}
+
+plot(data_source[, c(10,6)], col=cols[do.call(rbind,lapply(lof_result, set_point_color_lof))])
 hist(lof_result,breaks = 100)
 summary(lof_result)
 ```
