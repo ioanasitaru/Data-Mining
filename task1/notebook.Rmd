@@ -59,7 +59,7 @@ xfit = seq(min(g), max(g))
 yfit = dnorm(xfit, mean = mean(g), sd = sd(g)) 
 yfit = yfit * diff(h$mids[1:2]) * length(g) 
 lines(xfit, yfit, col = "black", lwd = 2)
-mtext(glue("Skewness: {skewness(data_source$Age)}\nKurtosis: {kurtosis(data_source$Age)}"), side=3, adj=1, padj=2)
+mtext(glue("Skewness: {skewness(g)}\nKurtosis: {kurtosis(g)}"), side=3, adj=1, padj=2)
 
 ```
 
@@ -243,7 +243,7 @@ summary(pca)
 ggbiplot(pca)
 plot(pca)
 ```
-###t-SNE
+### t-SNE
 
 ```{r}
 tsne <- Rtsne(data_source, check_duplicates = FALSE, theta=0.5, dims=2, perplexity=70, max_iter=3000, early_exag_coeff=12, stop_lying_iter=1200)
@@ -251,14 +251,9 @@ plot(tsne$Y, t='n', main="t-SNE")
 cols <- c("red", "green")
 text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
-###Projection pursuit
+### Projection pursuit
 ```{r}
 animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display_xy())
-```
-
-### Projection Pursuit
-```{r}
-animate_xy(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2))
 ```
 
 ## Outliers
@@ -351,9 +346,13 @@ ae = autoencoder(data_source[,c(6,10)], hidden.layers=c(10,5,10), standardize = 
 plot(ae)
 summary(ae)
 
+
+
 reconstructed_data = reconstruct(ae, data_source[,c(6,10)])
+mse = mean(reconstructed_data$anomaly_scores)
 plot(data_source[,c(6,10)], main="Autoencoded and original data")
 points(reconstructed_data$reconstructed, col=rgb(0, 0, 255, 127, maxColorValue = 255), pch=0)
+mtext(glue("MSE: {format(round(mse, 2), nsmall = 2)}"), side=3, adj=1, padj=2)
 ```
 
 ### LOF
