@@ -253,8 +253,19 @@ text(tsne$Y, labels=data_source[,2], col=cols[data_source[,2]+1])
 ```
 ### Projection pursuit
 ```{r}
-animate(data=data_source[, c(3,5,6,7,8,10,12)], grand_tour(d=2), display=display_xy())
+#animate(data=data_source[, c(3,5,6,7,8,10,12)], guided_tour(cmass(),d=2), display=display_xy())
+#animate(data=data_source[, c(3,5,6,7,8,10,12)], guided_tour(holes(),d=2), display=display_xy())
 ```
+#### Guided Tour - cmass
+
+
+![](guided_cmass.png)
+  
+
+#### Guided Tour - holes
+
+
+![](guided_holes.png)
 
 ## Outliers
 ### Univariate
