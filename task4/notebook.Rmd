@@ -87,7 +87,11 @@ load_data = function() {
   levels(data_source$Embarked) = c("Southampton", "Cherbourg", "Queenstown", "Southampton")
   levels(data_source$Sex) = c("Female", "Male")
   levels(data_source$Survived) = c("No", "Yes")
+  
   data_source$Family = data_source$Parch + data_source$SibSp
+  train_knn$SibSp = as.integer(train_knn$SibSp)
+  train_knn$Parch = as.integer(train_knn$Parch)
+  train_knn$Family = as.integer(train_knn$Family)
   return(data_source)
 }
 
@@ -105,10 +109,10 @@ fancyRpartPlot(fit)
 ```{r}
 #print(fit)
 #printcp(fit)
-plotcp(fit)
+#plotcp(fit)
 prediction = predict(fit, train, type = "class")
 
-folds = createFolds(train$Survived, k = 5, list = TRUE, returnTrain = TRUE)
+
 accuracies = c()
 precisions = c()
 recalls = c()
@@ -117,6 +121,11 @@ train_dt$Name = NULL
 train_dt$Ticket = NULL
 train_dt$Cabin = NULL
 train_dt$PassengerId = NULL
+train_dt$SibSp = NULL
+train_dt$Parch = NULL
+train_dt = SMOTE(Survived~., train_dt, perc.over=200, perc.under=120)
+folds = createFolds(train_dt$Survived, k = 5, list = TRUE, returnTrain = TRUE)
+avg_confusion_matrix = NULL
 for (fold in folds) {
   train_data = train_dt[fold,]
   test_data = train_dt[-fold,]
@@ -124,7 +133,12 @@ for (fold in folds) {
                data = train_data,
                method = "class")
   prediction = predict(object = fit, newdata = test_data, type = "class")
-  confusion_matrix = confusionMatrix(prediction, as.factor(train[-fold, ]$Survived))
+  confusion_matrix = confusionMatrix(prediction, as.factor(train_dt[-fold, ]$Survived))
+  if (is.null(avg_confusion_matrix)) {
+    avg_confusion_matrix = confusion_matrix
+  } else {
+    avg_confusion_matrix$table = avg_confusion_matrix$table + confusion_matrix$table
+  }
   accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
   accuracies = c(accuracies, accuracy)
   precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
@@ -135,8 +149,13 @@ for (fold in folds) {
   recalls = c(recalls, mean(c(recall_yes, recall_no)))
 }
 
+precision_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[,1])
+precision_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[,2])
+recall_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[1,])
+recall_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[2,])
 cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
-
+print(avg_confusion_matrix$table/5)
+cat("Precision:\n\tYes:", precision_yes,"\n\tNo:",precision_no,"\nRecall:\n\tYes:", recall_yes,"\n\tNo:",recall_no,"\n")
 ```
 
 
@@ -154,16 +173,24 @@ train_nb$Age = NULL
 train_nb$Ticket = NULL
 train_nb$Cabin = NULL
 train_nb$PassengerId = NULL
+train_nb = SMOTE(Survived~., train_nb, perc.over=200, perc.under=120)
 
 accuracies = c()
 precisions = c()
 recalls = c()
+avg_confusion_matrix=NULL
+folds = createFolds(train_nb$Survived, k = 5, list = TRUE, returnTrain = TRUE)
 for (fold in folds) {
   train_data = train_nb[fold,]
   test_data = train_nb[-fold,]
   fit = naiveBayes(Survived~.,usekernel=F, data=train_data)
   prediction = suppressWarnings(predict(fit, newdata = test_data, type = "class"))
   confusion_matrix = confusionMatrix(prediction, as.factor(train_nb[-fold, ]$Survived))
+  if (is.null(avg_confusion_matrix)) {
+    avg_confusion_matrix = confusion_matrix
+  } else {
+    avg_confusion_matrix$table = avg_confusion_matrix$table + confusion_matrix$table
+  }
   accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
   accuracies = c(accuracies, accuracy)
   precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
@@ -173,8 +200,13 @@ for (fold in folds) {
   recall_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[2,])
   recalls = c(recalls, mean(c(recall_yes, recall_no)))
 }
-
+precision_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[,1])
+precision_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[,2])
+recall_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[1,])
+recall_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[2,])
 cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
+print(avg_confusion_matrix$table/5)
+cat("Precision:\n\tYes:", precision_yes,"\n\tNo:",precision_no,"\nRecall:\n\tYes:", recall_yes,"\n\tNo:",recall_no,"\n")
 ```
 ## **kNN**
 ```{r}
@@ -186,15 +218,23 @@ train_knn$Cabin=NULL
 train_knn$Embarked=NULL
 train_knn$Pclass=NULL
 train_knn$Sex=NULL
+train_knn = SMOTE(Survived~., train_knn, perc.over=200, perc.under=120)
 
 accuracies = c()
 precisions = c()
 recalls = c()
+avg_confusion_matrix = NULL
+folds = createFolds(train_knn$Survived, k = 5, list = TRUE, returnTrain = TRUE)
 for (fold in folds) {
   train_data = train_knn[fold,]
   test_data = train_knn[-fold,]
   prediction = kNN(Survived~., train_data,test_data,norm=T, k=13)
   confusion_matrix = confusionMatrix(prediction, as.factor(train_knn[-fold, ]$Survived))
+  if (is.null(avg_confusion_matrix)) {
+    avg_confusion_matrix = confusion_matrix
+  } else {
+    avg_confusion_matrix$table = avg_confusion_matrix$table + confusion_matrix$table
+  }
   accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
   accuracies = c(accuracies, accuracy)
   precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
@@ -205,6 +245,12 @@ for (fold in folds) {
   recalls = c(recalls, mean(c(recall_yes, recall_no)))
 }
 
+precision_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[,1])
+precision_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[,2])
+recall_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[1,])
+recall_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[2,])
 cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
+print(avg_confusion_matrix$table/5)
+cat("Precision:\n\tYes:", precision_yes,"\n\tNo:",precision_no,"\nRecall:\n\tYes:", recall_yes,"\n\tNo:",recall_no,"\n")
 ```
 
