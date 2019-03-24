@@ -17,6 +17,12 @@ install.packages("tourr")
 install.packages("moments")
 install.packages("dbscan")
 install.packages("ANN2")
+install.packages("R.matlab")
+install.packages("arules")
+install.packages("arulesViz")
+library(arules)
+library(arulesViz)
+library("R.matlab")
 library("ANN2")
 library(ggplot2)
 library("PerformanceAnalytics")
@@ -28,6 +34,7 @@ library(tourr)
 library(moments)
 library(glue)
 library(dbscan)
+cat("All packages have been installed successfully\n")
 ```
 
 ## **Univariate analysis**
@@ -362,8 +369,15 @@ summary(ae)
 reconstructed_data = reconstruct(ae, data_source[,c(6,10)])
 mse = mean(reconstructed_data$anomaly_scores)
 plot(data_source[,c(6,10)], main="Autoencoded and original data")
-points(reconstructed_data$reconstructed, col=rgb(0, 0, 255, 127, maxColorValue = 255), pch=0)
+cols = colorRampPalette(c('red','blue'))(100)[as.numeric(cut(reconstructed_data$anomaly_scores,breaks = 100))]
+reconstructed_data$color = "#FFC300"
+reconstructed_data$color[reconstructed_data$anomaly_scores>10]="#FF5733"
+reconstructed_data$color[reconstructed_data$anomaly_scores>100]="#C70039"
+reconstructed_data$color[reconstructed_data$anomaly_scores>1000]="#900C3F"
+reconstructed_data$color[reconstructed_data$anomaly_scores>10000]="#581845"
+points(reconstructed_data$reconstructed, col=reconstructed_data$color, pch=2)
 mtext(glue("MSE: {format(round(mse, 2), nsmall = 2)}"), side=3, adj=1, padj=2)
+legend("topleft",title="MSE scores",legend=c("0-10", "11-100", "101-1000", "1001-10000", ">10000"),col =c("#FFC300","#FF5733","#C70039","#900C3F","#581845"),pch=20)
 ```
 
 ### LOF
@@ -380,5 +394,99 @@ set_point_color_lof = function(loff) {
 plot(data_source[, c(10,6)], col=cols[do.call(rbind,lapply(lof_result, set_point_color_lof))])
 hist(lof_result,breaks = 100)
 summary(lof_result)
+```
+## Outlier detection (MNIST)
+
+```{r}
+mnist_outlier_dataset = readMat("mnist.mat")
+data_frame = data.frame(matrix(unlist(mnist_outlier_dataset), nrow=7603, byrow=F))
+
+data_frame = data_frame[, sapply(data_frame, function(v) var(v, na.rm=TRUE)!=0)]
+
+mnist_inliers=data.frame(mnist_outlier_dataset$X[which(mnist_outlier_dataset$y==0),], mnist_outlier_dataset$y[which(mnist_outlier_dataset$y==0),])
+mnist_inliers$Y = mnist_inliers$mnist_outlier_dataset.y.which.mnist_outlier_dataset.y....0...
+mnist_inliers$mnist_outlier_dataset.y.which.mnist_outlier_dataset.y....0...=NULL
+mnist_outliers=data.frame(mnist_outlier_dataset$X[which(mnist_outlier_dataset$y==1),], mnist_outlier_dataset$y[which(mnist_outlier_dataset$y==1),])
+mnist_outliers$Y = mnist_outliers$mnist_outlier_dataset.y.which.mnist_outlier_dataset.y....1...
+mnist_outliers$mnist_outlier_dataset.y.which.mnist_outlier_dataset.y....1...=NULL
+
+pca = prcomp(~ ., data=data_frame, center = TRUE,scale. = TRUE, na.action=na.omit)
+summary(pca)
+plot(pca)
+```
+### Univariate analysis
+
+```{r}
+for (i in 1:77) {
+  current = df_copy[,i]
+  summ = summary(current)
+  first_quartile = as.numeric(summ[2])
+  third_quartile = as.numeric(summ[5])
+  iqr = third_quartile - first_quartile
+  iqr_lower = first_quartile - 1.5*iqr
+  iqr_upper = third_quartile + 1.5*iqr
+  outlier_number = length(which(current<iqr_lower)) + length(which(current>iqr_upper))
+  cat("X", i, ": ", outlier_number, " outliers\n", sep="")
+}
+```
+
+
+### LOF
+```{r}
+lof_result_mnist = lof(data_frame, k=1500)
+
+hist(lof_result_mnist,breaks = 100)
+summary(lof_result_mnist)
+summary(lof_result_mnist[1:6903])
+summary(lof_result_mnist[6904:7603])
+outlier_count = length(which(lof_result_mnist>1.085))
+real_outlier_count = length(which(lof_result_mnist[6904:7603]>1.085))
+precision=real_outlier_count/outlier_count * 100
+recall = real_outlier_count/700 * 100
+cat("LOF(k=1500, threshold=1.085) Precision=", precision, "% Recall=", recall, '%\n', sep="")
+outlier_count = length(which(lof_result_mnist>1.15))
+real_outlier_count = length(which(lof_result_mnist[6904:7603]>1.15))
+precision=real_outlier_count/outlier_count * 100
+recall = real_outlier_count/700 * 100
+cat("LOF(k=1500, threshold=1.15) Precision=", precision, "% Recall=", recall, '%\n', sep="")
+outlier_count = length(which(lof_result_mnist>1.2731))
+real_outlier_count = length(which(lof_result_mnist[6904:7603]>1.2731))
+precision=real_outlier_count/outlier_count * 100
+recall = real_outlier_count/700 * 100
+cat("LOF(k=1500, threshold=1.2731) Precision=", precision, "% Recall=", recall, '%\n', sep="")
+
+```
+
+### Autoencoder
+```{r}
+df_copy = data_frame
+df_copy$X101=NULL
+aem = autoencoder(df_copy, hidden.layers=c(10,5,10), standardize = TRUE,
+  loss.type = "squared", huber.delta = 1, activ.functions = "relu",
+  step.H = 5, step.k = 100, optim.type = "rmsprop",
+  learn.rates = 1e-04, L1 = 0, L2 = 0, sgd.momentum = 0.9,
+  rmsprop.decay = 0.9, adam.beta1 = 0.9, adam.beta2 = 0.999,
+  n.epochs = 200, batch.size = 32, drop.last = TRUE,
+  val.prop = 0.1, verbose = TRUE, random.seed = NULL)
+plot(aem)
+summary(aem)
+
+
+
+reconstructed_data_mnist = reconstruct(aem, df_copy)
+hist(reconstructed_data_mnist$anomaly_scores, breaks=100)
+summary(reconstructed_data_mnist$anomaly_scores[1:6903])
+summary(reconstructed_data_mnist$anomaly_scores[6904:7603])
+outlier_count = length(which(reconstructed_data_mnist$anomaly_scores>4500))
+real_outlier_count = length(which(reconstructed_data_mnist$anomaly_scores[6904:7603]>4500))
+precision=real_outlier_count/outlier_count * 100
+recall = real_outlier_count/700 * 100
+cat("Autoencoder (threshold=4500) Precision=", precision, "% Recall=", recall, '%\n', sep="")
+
+outlier_count = length(which(reconstructed_data_mnist$anomaly_scores>16594))
+real_outlier_count = length(which(reconstructed_data_mnist$anomaly_scores[6904:7603]>16594))
+precision=real_outlier_count/outlier_count * 100
+recall = real_outlier_count/700 * 100
+cat("Autoencoder (threshold=16594) Precision=", precision, "% Recall=", recall, '%\n', sep="")
 ```
 

@@ -15,6 +15,8 @@ install.packages('e1071')
 library(e1071)
 install.packages('caret')
 library(caret)
+install.packages('naivebayes')
+library(naivebayes)
 ```
 
 
@@ -99,19 +101,24 @@ fancyRpartPlot(fit)
 ## Prediction
 ***
 ```{r}
-print(fit)
-printcp(fit)
+#print(fit)
+#printcp(fit)
 plotcp(fit)
-prediction <- predict(fit, train, type = "class")
+prediction = predict(fit, train, type = "class")
 
-folds <- createFolds(train$Survived, k = 5, list = TRUE, returnTrain = TRUE)
+folds = createFolds(train$Survived, k = 5, list = TRUE, returnTrain = TRUE)
 accuracies = c()
 precisions = c()
 recalls = c()
+train_dt = load_data()
+train_dt$Name = NULL
+train_dt$Ticket = NULL
+train_dt$Cabin = NULL
+train_dt$PassengerId = NULL
 for (fold in folds) {
-  train_data = train[fold,]
-  test_data = train[-fold,]
-  fit = rpart(Survived ~ Pclass + Sex + Age + Family + Fare + Embarked,
+  train_data = train_dt[fold,]
+  test_data = train_dt[-fold,]
+  fit = rpart(Survived ~ .,
                data = train_data,
                method = "class")
   prediction = predict(object = fit, newdata = test_data, type = "class")
@@ -126,16 +133,42 @@ for (fold in folds) {
   recalls = c(recalls, mean(c(recall_yes, recall_no)))
 }
 
-mean(accuracies)
-mean(precisions)
-mean(recalls)
+cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
 
 ```
 
 
-## **Bayes naiv**
+## **Naive Bayes**
 
 ```{r}
+train_nb = load_data()
+train_nb$Name = NULL
+train_nb$Ticket = NULL
+train_nb$Cabin = NULL
+train_nb$PassengerId = NULL
+newNBclassifier=naive_bayes(Survived~.,usekernel=F, data=train_nb, method="class")
+prediction = predict(fit, newdata = train_nb, type = "class")
+#print(newNBclassifier$tables)
 
+accuracies = c()
+precisions = c()
+recalls = c()
+for (fold in folds) {
+  train_data = train_nb[fold,]
+  test_data = train_nb[-fold,]
+  fit = naive_bayes(Survived~.,usekernel=F, data=train_data)
+  prediction = predict(fit, newdata = test_data, type = "class")
+  "confusion_matrix = confusionMatrix(prediction, as.factor(train[-fold, ]$Survived))
+  accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
+  accuracies = c(accuracies, accuracy)
+  precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
+  precision_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[,2])
+  precisions = c(precisions, mean(c(precision_yes, precision_no)))
+  recall_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[1,])
+  recall_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[2,])
+  recalls = c(recalls, mean(c(recall_yes, recall_no)))"
+}
+
+cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
 ```
 
