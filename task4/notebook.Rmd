@@ -19,6 +19,8 @@ install.packages('naivebayes')
 library(naivebayes)
 install.packages("DMwR")
 library(DMwR)
+install.packages("keras")
+library(keras)
 ```
 
 
@@ -89,9 +91,9 @@ load_data = function() {
   levels(data_source$Survived) = c("No", "Yes")
   
   data_source$Family = data_source$Parch + data_source$SibSp
-  train_knn$SibSp = as.integer(train_knn$SibSp)
-  train_knn$Parch = as.integer(train_knn$Parch)
-  train_knn$Family = as.integer(train_knn$Family)
+  data_source$SibSp = as.integer(data_source$SibSp)
+  data_source$Parch = as.integer(data_source$Parch)
+  data_source$Family = as.integer(data_source$Family)
   return(data_source)
 }
 
@@ -253,4 +255,170 @@ cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions),
 print(avg_confusion_matrix$table/5)
 cat("Precision:\n\tYes:", precision_yes,"\n\tNo:",precision_no,"\nRecall:\n\tYes:", recall_yes,"\n\tNo:",recall_no,"\n")
 ```
+
+## **Neural Network**
+```{r}
+train_nn = load_data()
+train_nn$Name = NULL
+train_nn$Ticket = NULL
+train_nn$PassengerId=NULL
+train_nn$Cabin=NULL
+train_nn$Embarked=NULL
+train_nn$Pclass=NULL
+train_nn$Sex=NULL
+train_nn = SMOTE(Survived~., train_nn, perc.over=200, perc.under=120)
+
+accuracies = c()
+precisions = c()
+recalls = c()
+avg_confusion_matrix = NULL
+folds = createFolds(train_nn$Survived, k = 5, list = TRUE, returnTrain = TRUE)
+for (fold in folds) {
+  train_data = train_nn[fold,]
+  test_data = train_nn[-fold,]
+  trainingNN_y = train_data$Survived
+  trainingNN_x = train_data[ , !(names(train_data) %in% c("Survived"))]
+  
+  testingNN_y = test_data$Survived
+  testingNN_x = test_data[ , !(names(test_data) %in% c("Survived"))]
+  
+  
+  model <- keras_model_sequential() 
+  model %>% 
+    layer_dense(units = 24, activation = 'relu', input_shape = c(5)) %>% 
+    #layer_dropout(rate = 0.4) %>%
+    #layer_dense(units = 6, activation = 'relu') %>%
+    #layer_dropout(rate = 0.3) %>%
+    layer_dense(units = 1, activation = 'softmax')
+
+summary(model)
+
+model %>% compile(
+    loss = 'binary_crossentropy', #binary_crossentropy, categorical_crossentropy
+    optimizer = optimizer_rmsprop(), #'adam', optimizer_rmsprop()
+    metrics = c('accuracy')
+)
+history <- model %>% fit(
+    as.matrix(trainingNN_x), as.matrix(trainingNN_y), 
+    epochs = 100, batch_size = 10 #best combination, 100/10
+)
+plot(history)
+model %>% evaluate(testingNN_x, testingNN_y)
+
+prediction = model %>% predict_classes(testingNN_x)
+
+  
+  
+  confusion_matrix = confusionMatrix(prediction, as.factor(train_nn[-fold, ]$Survived))
+  if (is.null(avg_confusion_matrix)) {
+    avg_confusion_matrix = confusion_matrix
+  } else {
+    avg_confusion_matrix$table = avg_confusion_matrix$table + confusion_matrix$table
+  }
+  accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
+  accuracies = c(accuracies, accuracy)
+  precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
+  precision_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[,2])
+  precisions = c(precisions, mean(c(precision_yes, precision_no)))
+  recall_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[1,])
+  recall_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[2,])
+  recalls = c(recalls, mean(c(recall_yes, recall_no)))
+}
+
+
+# --------------------------------- prediction for test matrix
+test_matrix <- as.matrix(select(test_imputed, -(PassengerId)))
+predNN <- model %>% predict_classes(test_matrix)
+```
+
+
+## **SVM**
+
+```{r}
+train_svm = load_data()
+train_svm$Name = NULL
+train_svm$Ticket = NULL
+train_svm$PassengerId=NULL
+train_svm$Cabin=NULL
+train_svm$Embarked=NULL
+train_svm$Pclass=NULL
+train_svm$Sex=NULL
+train_svm = SMOTE(Survived~., train_svm, perc.over=200, perc.under=120)
+
+accuracies = c()
+precisions = c()
+recalls = c()
+avg_confusion_matrix = NULL
+folds = createFolds(train_svm$Survived, k = 5, list = TRUE, returnTrain = TRUE)
+for (fold in folds) {
+  train_data = train_svm[fold,]
+  test_data = train_svm[-fold,]
+  fit = svm(Survived~., train_data, scale=T, kernel="radial")
+  prediction = predict(fit, newdata = test_data, type = "class")
+  confusion_matrix = confusionMatrix(prediction, as.factor(train_svm[-fold, ]$Survived))
+  if (is.null(avg_confusion_matrix)) {
+    avg_confusion_matrix = confusion_matrix
+  } else {
+    avg_confusion_matrix$table = avg_confusion_matrix$table + confusion_matrix$table
+  }
+  accuracy = (confusion_matrix$table[1,1] + confusion_matrix$table[2,2]) / sum(confusion_matrix$table)
+  accuracies = c(accuracies, accuracy)
+  precision_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[,1])
+  precision_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[,2])
+  precisions = c(precisions, mean(c(precision_yes, precision_no)))
+  recall_no = confusion_matrix$table[1,1] / sum(confusion_matrix$table[1,])
+  recall_yes = confusion_matrix$table[2,2] / sum(confusion_matrix$table[2,])
+  recalls = c(recalls, mean(c(recall_yes, recall_no)))
+}
+
+precision_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[,1])
+precision_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[,2])
+recall_no = avg_confusion_matrix$table[1,1] / sum(avg_confusion_matrix$table[1,])
+recall_yes = avg_confusion_matrix$table[2,2] / sum(avg_confusion_matrix$table[2,])
+cat("Accuracy (mean):",mean(accuracies),"\nPrecision (mean):", mean(precisions), "\nRecall (mean):",mean(recalls),"\n")
+print(avg_confusion_matrix$table/5)
+cat("Precision:\n\tYes:", precision_yes,"\n\tNo:",precision_no,"\nRecall:\n\tYes:", recall_yes,"\n\tNo:",recall_no,"\n")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
