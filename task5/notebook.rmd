@@ -1,0 +1,104 @@
+---
+title: "Data Mining - Clustering"
+output: html_notebook
+---
+## Data loading
+```{r}
+# De incarcat toate dataseturile
+dataset_2d10c = as.data.frame(read.table('datasets/2d-10c.dat', header=F))
+labels_2d10c = as.array(dataset_2d10c$V3)+1
+dataset_2d10c$V3 = NULL
+dataset_2d10c_scaled = as.data.frame(scale(dataset_2d10c))
+```
+
+## Algorithms
+
+### Hierarchical Clustering
+
+#### Single linkage
+```{r}
+# De facut pentru toate metodele
+dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
+hclust_avg = hclust(dist_mat, method = 'single')
+cut_avg = cutree(hclust_avg, k = 10)
+
+suppressPackageStartupMessages(library(dplyr))
+cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
+
+suppressPackageStartupMessages(library(ggplot2))
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
+
+```
+
+#### Complete linkage
+```{r}
+# De facut pentru toate metodele
+dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
+hclust_avg = hclust(dist_mat, method = 'complete')
+cut_avg = cutree(hclust_avg, k = 10)
+
+suppressPackageStartupMessages(library(dplyr))
+cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
+
+suppressPackageStartupMessages(library(ggplot2))
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
+
+```
+
+
+#### Average linkage
+```{r}
+# De facut pentru toate metodele
+dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
+hclust_avg = hclust(dist_mat, method = 'average')
+cut_avg = cutree(hclust_avg, k = 10)
+
+suppressPackageStartupMessages(library(dplyr))
+cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
+
+suppressPackageStartupMessages(library(ggplot2))
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
+
+```
+
+#### Ward variance
+```{r}
+# De facut pentru toate metodele
+dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
+hclust_avg = hclust(dist_mat, method = 'ward.D')
+cut_avg = cutree(hclust_avg, k = 10)
+
+suppressPackageStartupMessages(library(dplyr))
+cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
+
+suppressPackageStartupMessages(library(ggplot2))
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
+
+```
+### k-Means
+
+```{r}
+set.seed(20)
+# Uncomment above for consistent starting point
+kmeans_clusters = kmeans(dataset_2d10c_scaled, 10)
+kcl_2d10c = as.factor(kmeans_clusters$cluster)
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(kcl_2d10c))) + geom_point()
+
+```
+
+### DBSCAN
+
+```{r}
+install.packages("dbscan")
+suppressPackageStartupMessages(library(dbscan))
+dbscan_cluster = dbscan(dataset_2d10c, eps=0.7, minPts=11)
+dcl_2d10c = dbscan_cluster$cluster
+ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(dcl_2d10c))) + geom_point()
+
+```
+
+
