@@ -4,101 +4,193 @@ output: html_notebook
 ---
 ## Data loading
 ```{r}
-# De incarcat toate dataseturile
-dataset_2d10c = as.data.frame(read.table('datasets/2d-10c.dat', header=F))
-labels_2d10c = as.array(dataset_2d10c$V3)+1
-dataset_2d10c$V3 = NULL
-dataset_2d10c_scaled = as.data.frame(scale(dataset_2d10c))
+preprocess_data = function(path){
+  original = as.data.frame(read.table(path, header=F))
+  labels = as.array(original[,ncol(original)])+1
+  original[,ncol(original)] = NULL
+  scaled = as.data.frame(scale(original))
+  dataset = list(original=original, labels=labels, scaled=scaled)
+  return(dataset)
+}
+
 ```
 
 ## Algorithms
 
 ### Hierarchical Clustering
-
-#### Single linkage
 ```{r}
-# De facut pentru toate metodele
-dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
-hclust_avg = hclust(dist_mat, method = 'single')
-cut_avg = cutree(hclust_avg, k = 10)
-
-suppressPackageStartupMessages(library(dplyr))
-cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
-
-suppressPackageStartupMessages(library(ggplot2))
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
+hierarchical = function(dataset, method, title) {
+  dist_mat = dist(dataset$scaled, method = 'euclidean')
+  hclust_avg = hclust(dist_mat, method = method)
+  cut_avg = cutree(hclust_avg, k = length(levels(as.factor(dataset$labels))))
+  
+  suppressPackageStartupMessages(library(dplyr))
+  dataset$cluster = cut_avg
+  
+  ari = ARI(dataset$labels, dataset$cluster)
+  
+  suppressPackageStartupMessages(library(ggplot2))
+  ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dataset$cluster))) + geom_point() + ggtitle(title, paste("ARI:", ari)) + labs(color = "Clusters")
+}
 
 ```
 
-#### Complete linkage
-```{r}
-# De facut pentru toate metodele
-dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
-hclust_avg = hclust(dist_mat, method = 'complete')
-cut_avg = cutree(hclust_avg, k = 10)
-
-suppressPackageStartupMessages(library(dplyr))
-cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
-
-suppressPackageStartupMessages(library(ggplot2))
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
-
-```
-
-
-#### Average linkage
-```{r}
-# De facut pentru toate metodele
-dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
-hclust_avg = hclust(dist_mat, method = 'average')
-cut_avg = cutree(hclust_avg, k = 10)
-
-suppressPackageStartupMessages(library(dplyr))
-cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
-
-suppressPackageStartupMessages(library(ggplot2))
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
-
-```
-
-#### Ward variance
-```{r}
-# De facut pentru toate metodele
-dist_mat = dist(dataset_2d10c_scaled, method = 'euclidean')
-hclust_avg = hclust(dist_mat, method = 'ward.D')
-cut_avg = cutree(hclust_avg, k = 10)
-
-suppressPackageStartupMessages(library(dplyr))
-cluster_2d10c = mutate(dataset_2d10c, cluster = cut_avg)
-
-suppressPackageStartupMessages(library(ggplot2))
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(cluster_2d10c$cluster))) + geom_point()
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(labels_2d10c))) + geom_point()
-
-```
 ### k-Means
-
 ```{r}
-set.seed(20)
-# Uncomment above for consistent starting point
-kmeans_clusters = kmeans(dataset_2d10c_scaled, 10)
-kcl_2d10c = as.factor(kmeans_clusters$cluster)
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(kcl_2d10c))) + geom_point()
+k_means = function(dataset) {
+  set.seed(20)
+  kmeans_clusters = kmeans(dataset$scaled, length(levels(as.factor(dataset$labels))))
+  kcl = as.factor(kmeans_clusters$cluster)
+  ari = ARI(dataset$labels, kcl)
+  ggplot(dataset$original, aes(x=V1, y=V2, color = factor(kcl))) + geom_point() + ggtitle("k-Means", paste("ARI:", ari))  + labs(color = "Clusters")
+}
 
 ```
 
 ### DBSCAN
-
 ```{r}
 install.packages("dbscan")
 suppressPackageStartupMessages(library(dbscan))
-dbscan_cluster = dbscan(dataset_2d10c, eps=0.7, minPts=11)
-dcl_2d10c = dbscan_cluster$cluster
-ggplot(dataset_2d10c, aes(x=V1, y=V2, color = factor(dcl_2d10c))) + geom_point()
+
+db_scan = function(dataset, eps, k) {
+  dbscan_cluster = dbscan(dataset$original, eps=eps, minPts=k)
+  dcl = dbscan_cluster$cluster
+  ari = ARI(dataset$labels, dcl)
+  ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dcl))) + geom_point() + ggtitle("DBSCAN", paste("ARI:", ari))  + labs(color = "Clusters")
+}
 
 ```
+
+### ARI
+```{r}
+install.packages("MixGHD")
+suppressPackageStartupMessages(library(MixGHD))
+```
+
+
+### 2d10c dataset
+
+```{r}
+data = preprocess_data('datasets/2d-10c.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps=0.7, k=11)
+
+```
+
+
+### Smile dataset
+
+```{r}
+data = preprocess_data('datasets/smile.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps = 0.6, k = 5)
+
+```
+
+
+### Iris dataset
+
+```{r}
+data = preprocess_data('datasets/iris.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps = 0.6, k = 5)
+
+```
+
+### Long dataset
+
+```{r}
+data = preprocess_data('datasets/long.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps = 0.4, k = 2)
+
+```
+
+### Order2-3clust dataset
+
+```{r}
+data = preprocess_data('datasets/order2-3clust.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps = 5, k = 10)
+```
+
+
+### Square dataset
+
+```{r}
+data = preprocess_data('datasets/square.dat')
+ari = ARI(data$labels, data$labels)
+ggplot(data$original, aes(x=V1, y=V2, color = factor(data$labels))) + geom_point() + ggtitle("Original", paste("ARI:", ari))  + labs(color = "Clusters")
+hierarchical(data, 'single', 'Single linkage')
+hierarchical(data, 'complete', 'Complete linkage')
+hierarchical(data, 'average', 'Average linkage')
+hierarchical(data, 'ward.D', 'Ward variance')
+k_means(data)
+db_scan(data, eps = 0.7, k = 10)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
