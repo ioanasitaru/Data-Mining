@@ -4,6 +4,9 @@ output: html_notebook
 ---
 ## Data loading
 ```{r}
+install.packages('ggplot2')
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
 preprocess_data = function(path){
   original = as.data.frame(read.table(path, header=F))
   labels = as.array(original[,ncol(original)])+1
@@ -23,13 +26,8 @@ hierarchical = function(dataset, method, title) {
   dist_mat = dist(dataset$scaled, method = 'euclidean')
   hclust_avg = hclust(dist_mat, method = method)
   cut_avg = cutree(hclust_avg, k = length(levels(as.factor(dataset$labels))))
-  
-  suppressPackageStartupMessages(library(dplyr))
   dataset$cluster = cut_avg
-  
   ari = ARI(dataset$labels, dataset$cluster)
-  
-  suppressPackageStartupMessages(library(ggplot2))
   ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dataset$cluster))) + geom_point() + ggtitle(title, paste("ARI:", ari)) + labs(color = "Clusters")
 }
 
@@ -56,6 +54,7 @@ db_scan = function(dataset, eps, k) {
   dbscan_cluster = dbscan(dataset$original, eps=eps, minPts=k)
   dcl = dbscan_cluster$cluster
   ari = ARI(dataset$labels, dcl)
+  #cat(length(levels(as.factor(dbscan_cluster$cluster))), "ARI:",ari,eps,k,"\n")
   ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dcl))) + geom_point() + ggtitle("DBSCAN", paste("ARI:", ari))  + labs(color = "Clusters")
 }
 
@@ -63,13 +62,15 @@ db_scan = function(dataset, eps, k) {
 
 ### ARI
 ```{r}
-install.packages("MixGHD")
+install.packages("MixGHD", dependencies=TRUE, repos='http://cran.rstudio.com/')
 suppressPackageStartupMessages(library(MixGHD))
 ```
 
 
 ### 2d10c dataset
+Best algorithm: DBSCAN
 
+The clusters have density differences but given their spatial remoteness, with some hyperparameter fine-tuning, most of the elements of the sparse clusters should be able to be clumped together while still preventing the merge of the close, dense clusters
 ```{r}
 data = preprocess_data('datasets/2d-10c.dat')
 ari = ARI(data$labels, data$labels)
@@ -79,13 +80,17 @@ hierarchical(data, 'complete', 'Complete linkage')
 hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
-db_scan(data, eps=0.7, k=11)
+db_scan(data, eps=0.8, k=13)
+#Parameters chosen via grid search
 
 ```
 
 
 ### Smile dataset
 
+Best algorithm: single-linkage/DBSCAN
+
+The clusters are well spread apart and relatively dense, with elongated shapes, therefore the two algorithms should have no issues with them
 ```{r}
 data = preprocess_data('datasets/smile.dat')
 ari = ARI(data$labels, data$labels)
@@ -101,7 +106,9 @@ db_scan(data, eps = 0.6, k = 5)
 
 
 ### Iris dataset
+Best algorithm: DBSCAN(?)
 
+The data is 4d which makes it difficult to visualize and thus predict the best algorithm. PCA shows that the first component accounts for >90% of the variation in the data, so the clusters should be in some way both elongated and rounded, so any algorithm has a chance.
 ```{r}
 data = preprocess_data('datasets/iris.dat')
 ari = ARI(data$labels, data$labels)
@@ -111,12 +118,13 @@ hierarchical(data, 'complete', 'Complete linkage')
 hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
-db_scan(data, eps = 0.6, k = 5)
-
+db_scan(data, eps = 0.4, k = 4)
+# Parameters chosen via grid search
 ```
 
 ### Long dataset
 
+Best fit: single-linkage (elongated clusters)
 ```{r}
 data = preprocess_data('datasets/long.dat')
 ari = ARI(data$labels, data$labels)
@@ -132,6 +140,9 @@ db_scan(data, eps = 0.4, k = 2)
 
 ### Order2-3clust dataset
 
+Best algorithm: single-linkage (elongated clusters)
+
+DBSCAN might perform well but the difference between the clusters' densities seems too high
 ```{r}
 data = preprocess_data('datasets/order2-3clust.dat')
 ari = ARI(data$labels, data$labels)
@@ -141,12 +152,15 @@ hierarchical(data, 'complete', 'Complete linkage')
 hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
-db_scan(data, eps = 5, k = 10)
+db_scan(data, eps = 2, k = 7)
 ```
 
 
 ### Square dataset
 
+Best algorithm: k-Means/complete-linkage (round clusters)
+
+Likely no algorithm performs well, as the data is generated from a randomly split uniform distribution with no clear boundaries
 ```{r}
 data = preprocess_data('datasets/square.dat')
 ari = ARI(data$labels, data$labels)
