@@ -19,11 +19,10 @@ preprocess_data = function(path){
 
 ### k-Means
 ```{r}
-k_means = function(dataset) {
+k_means = function(dataset, cluster_nr) {
   set.seed(20)
-  kmeans_clusters = kmeans(dataset$scaled, length(levels(as.factor(dataset$labels))))
-  kcl = kmeans_clusters$cluster
-  return(kcl)
+  kmeans_clusters = kmeans(dataset$scaled, cluster_nr)
+  return(kmeans_clusters)
 }
 
 ```
@@ -35,14 +34,23 @@ suppressPackageStartupMessages(library(cluster))
 
 ```{r}
 data = preprocess_data('datasets/2d-10c.dat')
-clusters = k_means(data)
-data(ruspini)
-silhouette(clusters, dist(clusters, method = "euclidean")
-           
-dist.res <- dist(data, method = "euclidean")
-hc <- hclust(dist.res, method = "complete")
-k.max <- 20
-sil <- rep(0, k.max)
+silhouette_means = c()
+wss_means = c()
+for (k in 2:20) {
+  kcl = k_means(data, k)
+  clusters = kcl$cluster
+  wss = kcl$withinss
+  current_silhouette = silhouette(clusters, dist(data$original, method = "euclidean"))
+  silhouette_means = c(silhouette_means, mean(current_silhouette[,3]))
+  wss_means = c(wss_means, mean(wss))
+}
+plot(2:20, silhouette_means, type="l", ylim=c(0,0.6))
+plot(2:20, wss_means, type="l")
+          
+#dist.res <- dist(data, method = "euclidean")
+#hc <- hclust(dist.res, method = "complete")
+#k.max <- 20
+#sil <- rep(0, k.max)
 
 ```
 
