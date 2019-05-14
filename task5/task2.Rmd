@@ -35,14 +35,32 @@ suppressPackageStartupMessages(library(cluster))
 
 ```{r}
 data = preprocess_data('datasets/2d-10c.dat')
-clusters = k_means(data)
-data(ruspini)
-silhouette(clusters, dist(clusters, method = "euclidean")
+
            
-dist.res <- dist(data, method = "euclidean")
-hc <- hclust(dist.res, method = "complete")
-k.max <- 20
-sil <- rep(0, k.max)
+dist.res <- dist(as.vector(data$original), method = "euclidean")
+
+sil = rep(0, 20)
+for(i in 2:20){
+  clusters =  k_means(data)
+  ss = silhouette(clusters, dist(data$original))
+  sil[i] = mean(ss[, 3])
+}
+plot(1:20, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+
+
+
+
+silhouette_score = function(k){
+  km = k_means(data)
+  ss = silhouette(data.frame(km),  dist(data$original))
+  return(mean(ss[, 3]))
+}
+k=c(2,3,4,5,6)
+avg_sil <- sapply(k, silhouette_score)
+
+plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
 
 ```
 
