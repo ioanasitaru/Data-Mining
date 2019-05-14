@@ -1,0 +1,48 @@
+---
+title: "Data Mining - Clustering"
+output: html_notebook
+---
+
+### Data loading
+```{r}
+preprocess_data = function(path){
+  original = as.data.frame(read.table(path, header=F))
+  labels = as.array(original[,ncol(original)])+1
+  original[,ncol(original)] = NULL
+  scaled = as.data.frame(scale(original))
+  dataset = list(original=original, labels=labels, scaled=scaled)
+  return(dataset)
+}
+
+```
+
+
+### k-Means
+```{r}
+k_means = function(dataset) {
+  set.seed(20)
+  kmeans_clusters = kmeans(dataset$scaled, length(levels(as.factor(dataset$labels))))
+  kcl = kmeans_clusters$cluster
+  return(kcl)
+}
+
+```
+
+```{r}
+install.packages("cluster")
+suppressPackageStartupMessages(library(cluster))
+```
+
+```{r}
+data = preprocess_data('datasets/2d-10c.dat')
+clusters = k_means(data)
+data(ruspini)
+silhouette(clusters, dist(clusters, method = "euclidean")
+           
+dist.res <- dist(data, method = "euclidean")
+hc <- hclust(dist.res, method = "complete")
+k.max <- 20
+sil <- rep(0, k.max)
+
+```
+
