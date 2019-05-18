@@ -34,28 +34,44 @@ suppressPackageStartupMessages(library(cluster))
 
 ```{r}
 data = preprocess_data('datasets/2d-10c.dat')
-<<<<<<< HEAD
-silhouette_means = c()
+silhouette_means_k = c()
+silhouette_means_h = c()
 wss_means = c()
+heights = c()
+dist_mat = dist(data$original, method = 'euclidean')
+
+hclust_avg = hclust(dist_mat, method = 'average')
+
+for (k in seq(length(hclust_avg$height),2,-1)) {
+  hclust_avg$height[k] = hclust_avg$height[k]-hclust_avg$height[k-1]
+}
+
 for (k in 2:20) {
   kcl = k_means(data, k)
   clusters = kcl$cluster
   wss = kcl$withinss
-  current_silhouette = silhouette(clusters, dist(data$original, method = "euclidean"))
-  silhouette_means = c(silhouette_means, mean(current_silhouette[,3]))
+  current_silhouette_k = silhouette(clusters, dist_mat)
+  silhouette_means_k = c(silhouette_means_k, mean(current_silhouette_k[,3]))
   wss_means = c(wss_means, mean(wss))
+  
+  cut_avg = cutree(hclust_avg, k = k)
+  silhouette_means_h = c(silhouette_means_h, mean(silhouette(cut_avg, dist_mat)[,3]))
+  heights = c(heights, rev(hclust_avg$height)[k-1])
 }
-plot(2:20, silhouette_means, type="l", ylim=c(0,0.6))
+plot(2:20, silhouette_means_k, type="l", ylim=c(0,0.6))
 plot(2:20, wss_means, type="l")
+
+plot(2:20, silhouette_means_h, type="l", ylim=c(0,0.6))
+plot(2:20, heights, type="l")
           
 #dist.res <- dist(data, method = "euclidean")
 #hc <- hclust(dist.res, method = "complete")
 #k.max <- 20
 #sil <- rep(0, k.max)
-=======
+```
 
-           
-dist.res <- dist(as.vector(data$original), method = "euclidean")
+```{r}           
+'dist.res <- dist(as.vector(data$original), method = "euclidean")
 
 sil = rep(0, 20)
 for(i in 2:20){
@@ -78,8 +94,7 @@ silhouette_score = function(k){
 k=c(2,3,4,5,6)
 avg_sil <- sapply(k, silhouette_score)
 
-plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
->>>>>>> ebcdddb1653f0651273189358dabca1f85cee459
+plot(k, type=\'b\', avg_sil, xlab=\'Number of clusters\', ylab=\'Average Silhouette Scores\', frame=FALSE)'
 
 ```
 
