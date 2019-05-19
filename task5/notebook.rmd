@@ -60,6 +60,21 @@ db_scan = function(dataset, eps, k) {
 
 ```
 
+### EM
+```{r}
+install.packages("EMCluster",  quietly = TRUE)
+suppressPackageStartupMessages(library(EMCluster))
+
+em_algorithm = function(dataset, nr_clusters) {
+  set.seed(1234)
+  emobject = simple.init(dataset$original, nclass = nr_clusters)
+  emobject = shortemcluster(dataset$original, emobject)
+  ret = emcluster(dataset$original, emobject, assign.class = TRUE)
+  plotem(emobj = emobject, dataset$original, color.pch = 1, append.BN = TRUE)
+}
+
+```
+
 ### ARI
 ```{r}
 install.packages("MixGHD", dependencies=TRUE, repos='http://cran.rstudio.com/')
@@ -82,7 +97,7 @@ hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps=0.8, k=13)
 #Parameters chosen via grid search
-
+em_algorithm(data, 10)
 ```
 
 
@@ -101,6 +116,7 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps = 0.6, k = 5)
+em_algorithm(data, 4)
 
 ```
 
@@ -135,6 +151,7 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps = 0.4, k = 2)
+em_algorithm(data, 2)
 
 ```
 
@@ -153,6 +170,7 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps = 2, k = 7)
+em_algorithm(data, 3)
 ```
 
 
@@ -171,6 +189,7 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps = 0.7, k = 10)
+em_algorithm(data, 4)
 
 ```
 

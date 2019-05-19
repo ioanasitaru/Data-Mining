@@ -1,0 +1,100 @@
+---
+title: "Data Mining - Clustering"
+output: html_notebook
+---
+
+### Data loading
+```{r}
+preprocess_data = function(path){
+  original = as.data.frame(read.table(path, header=F))
+  labels = as.array(original[,ncol(original)])+1
+  original[,ncol(original)] = NULL
+  scaled = as.data.frame(scale(original))
+  dataset = list(original=original, labels=labels, scaled=scaled)
+  return(dataset)
+}
+
+```
+
+
+### k-Means
+```{r}
+k_means = function(dataset, cluster_nr) {
+  set.seed(20)
+  kmeans_clusters = kmeans(dataset$scaled, cluster_nr)
+  return(kmeans_clusters)
+}
+
+```
+
+```{r}
+install.packages("cluster")
+suppressPackageStartupMessages(library(cluster))
+```
+
+```{r}
+data = preprocess_data('datasets/2d-10c.dat')
+silhouette_means_k = c()
+silhouette_means_h = c()
+wss_means = c()
+heights = c()
+dist_mat = dist(data$original, method = 'euclidean')
+
+hclust_avg = hclust(dist_mat, method = 'average')
+
+for (k in seq(length(hclust_avg$height),2,-1)) {
+  hclust_avg$height[k] = hclust_avg$height[k]-hclust_avg$height[k-1]
+}
+
+for (k in 2:20) {
+  kcl = k_means(data, k)
+  clusters = kcl$cluster
+  wss = kcl$withinss
+  current_silhouette_k = silhouette(clusters, dist_mat)
+  silhouette_means_k = c(silhouette_means_k, mean(current_silhouette_k[,3]))
+  wss_means = c(wss_means, mean(wss))
+  
+  cut_avg = cutree(hclust_avg, k = k)
+  silhouette_means_h = c(silhouette_means_h, mean(silhouette(cut_avg, dist_mat)[,3]))
+  heights = c(heights, rev(hclust_avg$height)[k-1])
+}
+plot(2:20, silhouette_means_k, type="l", ylim=c(0,0.6))
+plot(2:20, wss_means, type="l")
+
+plot(2:20, silhouette_means_h, type="l", ylim=c(0,0.6))
+plot(2:20, heights, type="l")
+          
+#dist.res <- dist(data, method = "euclidean")
+#hc <- hclust(dist.res, method = "complete")
+#k.max <- 20
+#sil <- rep(0, k.max)
+```
+
+```{r}           
+'dist.res <- dist(as.vector(data$original), method = "euclidean")
+
+sil = rep(0, 20)
+for(i in 2:20){
+  clusters =  k_means(data)
+  ss = silhouette(clusters, dist(data$original))
+  sil[i] = mean(ss[, 3])
+}
+plot(1:20, sil, type = "b", pch = 19, 
+     frame = FALSE, xlab = "Number of clusters k")
+abline(v = which.max(sil), lty = 2)
+
+
+
+
+silhouette_score = function(k){
+  km = k_means(data)
+  ss = silhouette(data.frame(km),  dist(data$original))
+  return(mean(ss[, 3]))
+}
+k=c(2,3,4,5,6)
+avg_sil <- sapply(k, silhouette_score)
+
+plot(k, type=\'b\', avg_sil, xlab=\'Number of clusters\', ylab=\'Average Silhouette Scores\', frame=FALSE)'
+
+```
+
