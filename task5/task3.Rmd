@@ -1,0 +1,128 @@
+---
+title: "Data Mining - Clustering"
+output: html_notebook
+---
+```{r}
+require(kohonen)
+require(RColorBrewer)
+```
+## Data loading
+```{r}
+load_data = function() {
+  data_source = data.frame(read.csv("./datasets/titanic.csv", header = T))
+  library(varhandle)
+  data_source$Sex = unfactor(data_source$Sex)
+  data_source$Embarked = unfactor(data_source$Embarked)
+  # Fill in missing age entries with average, embarked with Southampton
+  for (i in 1:length(data_source$Age)) {
+    if (is.na(data_source$Age[i])) {
+      data_source$Age[i] = mean(data_source$Age, na.rm = TRUE)
+    }
+    
+    if (data_source$Embarked[i] == "" ||
+      data_source$Embarked[i] == "S") {
+      data_source$Embarked[i] = 3
+    }
+    
+    else if (data_source$Embarked[i] == "C") {
+      data_source$Embarked[i] = 1
+    }
+    else if (data_source$Embarked[i] == "Q") {
+      data_source$Embarked[i] = 2
+    }
+    
+    if (data_source$Sex[i] == "male") {
+      data_source$Sex[i] = 2
+    }
+    else if (data_source$Sex[i] == "female") {
+      data_source$Sex[i] = 1
+    }
+  }
+  data_source$Embarked = as.numeric(data_source$Embarked)
+  data_source$Sex = as.numeric(data_source$Sex)
+  
+  data_source$Survived = as.factor(data_source$Survived)
+  data_source$Pclass = as.factor(data_source$Pclass)
+  data_source$Sex = as.factor(data_source$Sex)
+  data_source$Embarked = as.factor(data_source$Embarked)
+  levels(data_source$Embarked) = c("Southampton", "Cherbourg", "Queenstown", "Southampton")
+  levels(data_source$Sex) = c("Female", "Male")
+  levels(data_source$Survived) = c("No", "Yes")
+  
+  data_source$Family = data_source$Parch + data_source$SibSp
+  data_source$SibSp = as.integer(data_source$SibSp)
+  data_source$Parch = as.integer(data_source$Parch)
+  data_source$Family = as.integer(data_source$Family)
+  
+  data_source$Embarked = as.numeric(data_source$Embarked)
+  data_source$Sex = as.numeric(data_source$Sex)
+  data_source$Pclass = as.numeric(data_source$Pclass)
+  
+  data_source$Ticket = NULL
+  data_source$Name = NULL
+  data_source$Cabin = NULL
+  return(data_source)
+}
+
+```
+
+## Algorithms
+
+### SOM
+```{r}
+install.packages("dbscan")
+suppressPackageStartupMessages(library(dbscan))
+
+db_scan = function(dataset, eps, k) {
+  dbscan_cluster = dbscan(dataset$original, eps=eps, minPts=k)
+  dcl = dbscan_cluster$cluster
+  ari = ARI(dataset$labels, dcl)
+  ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dcl))) + geom_point() + ggtitle("DBSCAN", paste("ARI:", ari))  + labs(color = "Clusters")
+}
+
+```
+
+### Data analysis
+
+```{r}
+data = load_data()
+#data$Survived = as.numeric(data$Survived)
+data$Survived = NULL
+data$PassengerId = NULL
+plot(som(scale(data), grid = somgrid(2, 2, "rectangular")))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
