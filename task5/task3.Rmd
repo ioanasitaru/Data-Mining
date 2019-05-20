@@ -3,6 +3,7 @@ title: "Data Mining - Clustering"
 output: html_notebook
 ---
 ```{r}
+install.packages('kohonen')
 require(kohonen)
 require(RColorBrewer)
 ```
@@ -69,18 +70,6 @@ load_data = function() {
 ## Algorithms
 
 ### SOM
-```{r}
-install.packages("dbscan")
-suppressPackageStartupMessages(library(dbscan))
-
-db_scan = function(dataset, eps, k) {
-  dbscan_cluster = dbscan(dataset$original, eps=eps, minPts=k)
-  dcl = dbscan_cluster$cluster
-  ari = ARI(dataset$labels, dcl)
-  ggplot(dataset$original, aes(x=V1, y=V2, color = factor(dcl))) + geom_point() + ggtitle("DBSCAN", paste("ARI:", ari))  + labs(color = "Clusters")
-}
-
-```
 
 ### Data analysis
 
@@ -89,8 +78,14 @@ data = load_data()
 #data$Survived = as.numeric(data$Survived)
 data$Survived = NULL
 data$PassengerId = NULL
-plot(som(scale(data), grid = somgrid(2, 2, "rectangular")))
-
+som_original = som(as.matrix(data), grid = somgrid(15, 15, "hexagonal"))
+som_scaled = som(scale(data), grid = somgrid(15, 15, "hexagonal"))
+plot(som_original)
+plot(som_original, type='changes')
+plot(som_original, type='counts')
+plot(som_scaled)
+plot(som_scaled, type='changes')
+plot(som_scaled, type='counts')
 ```
 
 
