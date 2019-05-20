@@ -96,7 +96,6 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps=0.8, k=13)
-#Parameters chosen via grid search
 em_algorithm(data, 10)
 ```
 
@@ -135,7 +134,11 @@ hierarchical(data, 'average', 'Average linkage')
 hierarchical(data, 'ward.D', 'Ward variance')
 k_means(data)
 db_scan(data, eps = 0.4, k = 4)
-# Parameters chosen via grid search
+set.seed(1234)
+emobject = simple.init(data$original, nclass = 4)
+emobject = shortemcluster(data$original, emobject)
+ret = emcluster(data$original, emobject, assign.class = TRUE)
+summary(emobject)
 ```
 
 ### Long dataset
