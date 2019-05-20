@@ -71,8 +71,6 @@ load_data = function() {
 
 ### SOM
 
-### Data analysis
-
 ```{r}
 data = load_data()
 #data$Survived = as.numeric(data$Survived)
@@ -89,7 +87,30 @@ plot(som_scaled, type='counts')
 ```
 
 
+### EM
 
+```{r}
+
+em_algorithm = function(dataset, nr_clusters) {
+  set.seed(1234)
+  emobject = simple.init(dataset)
+  emobject = shortemcluster(dataset, emobject)
+  ret = emcluster(dataset, emobject, assign.class = TRUE)
+  summary(emobject)
+  #return(emobject)
+}
+
+em_algorithm(as.matrix(data), 2)
+em_algorithm(scale(data), 2)
+
+
+print(assign.class(scale(data), emobj = em_scaled))
+
+install.packages('mclust')
+library(mclust)
+mcl = Mclust(data, G=2)
+
+```
 
 
 
